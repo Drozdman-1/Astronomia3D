@@ -1,5 +1,5 @@
 # Astronomia3D
 Astronomy. Planets positions animation.
 
-![Screenshot](Astronomia3D_animation.gif)
+![Screenshot](demo-images/Astronomia3D_animation.gif)
 
