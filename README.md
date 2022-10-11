@@ -13,6 +13,8 @@ This program uses [Swiss Ephemeris](https://www.astro.com/swisseph/) (authors: D
 
 *One can use a command line option to start the program with a chosen time, latitude and longitude.*
 
+*To save animations, 'ffmpeg' must be installed and added to PATH.*
+
 If there are problems with installing Pyswisseph, wheel (whl) installation may help.
 Download a wheel from [Windows Binaries for Python Extension Packages](https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyswisseph). Choose one for the right version of Python (32bit or 64bit).
 
