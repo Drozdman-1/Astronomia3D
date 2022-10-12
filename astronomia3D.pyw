@@ -1707,7 +1707,8 @@ class astro3D():
         if event.artist==self.id_v_start:
             if event.mouseevent.button==1:
                 self.timestamp=self.timestampIni
-                self.plot_next_prev(minutes=0) 
+                self.plot_next_prev(minutes=0)
+                self.extra_off()
             self.ax.set_xlim(self.xlim)
             self.ax.set_ylim(self.ylim)
             self.ax.set_zlim(self.zlim)
@@ -1717,12 +1718,15 @@ class astro3D():
             self.prime_vert_2.set_visible(True) 
 
         elif event.artist==self.id_v_chart:
-            if event.mouseevent.button==3: 
-                self.ax.view_init(azim = 90 + np.degrees(self.Asc_φ_hor), elev = self.poleN_ecl_elev+90)  
-
+            if event.mouseevent.button==3:
+                azim_= 90 + np.degrees(self.Asc_φ_hor)
+                elev_=self.pole_ecl_elev+90
+                if self.south==True:elev_=self.pole_ecl_elev-90
+                self.ax.view_init(azim = azim_, elev = elev_)  
             else:
                 azim_=90 + np.degrees(self.Asc_φ_hor)
-                self.ax.view_init(azim = azim_, elev = self.poleN_ecl_elev) 
+                a1('azim_ 90 + np.degrees(self.Asc_φ_hor)',azim_,"elev =", self.pole_ecl_elev); #71,24
+                self.ax.view_init(azim = azim_, elev = self.pole_ecl_elev) 
                 self.mer_circle.set_visible(False)
                 self.prime_vert_1.set_visible(False)
                 self.prime_vert_2.set_visible(False)            
@@ -1730,6 +1734,7 @@ class astro3D():
                     azim_, elev_ = self.ax.azim, self.ax.elev
                     self.ax.view_init(azim = 30, elev = elev_)
 
+                    
         elif event.artist==self.id_v_Eq:
             if event.mouseevent.button == 3:
                 self.ax.view_init(azim = 90, elev = self.poleN_elev-90)
@@ -2123,6 +2128,27 @@ class astro3D():
             self.zoom_(event,r)                 
         elif event.button == "down":
             self.zoom_(event,1/r)
+
+
+    def extra_off(self):
+        for id_t in self.planets_obj:
+            obj = self.planets_obj[id_t]            
+            for el in ["id_Mer", "id_Mer_nat", "id_Par", "id_proj_hor", "id_proj_hor_nat"]:
+                obj[el].set_visible(False)
+            for el in ["id_pt_Eq", "id_pt_Hor", "id_pt_Ecl"]:
+                obj[el][0].set_visible(False)
+            for el in ["id_l_eq", "id_l_ecl","id_l_ho"]:
+                obj[el].set_visible(False)
+        self.annot.set_visible(False)
+        #self.hide_h_line()
+
+        #for el in ["id_asc_Eq", "id_Mer", "id_l_eq","id_Mer_nat"]: 
+        #    self.ASC_inf[el].set_visible(False)
+
+        self.toggle_ecliptic_scale(hide= True) 
+        self.toggle_equator_scale(hide= True) 
+        self.toggle_horizon_scale(hide= True) 
+        self.toggle_prime_vert_scale(hide= True)
 
     def timer_azim_elev(self, interval=15000, event=None):
         try:self.timer_az.stop()
@@ -2594,26 +2620,10 @@ class GUI_astro3D:
             self.plot.toggle_prime_vert_scale()
 
         elif str_=="Extra off":
-            self.extra_off()
+            self.plot.extra_off()
 
         self.plot.canvas.draw_idle()
 
-
-    def extra_off(self):
-        for id_t in self.plot.planets_obj:
-            obj = self.plot.planets_obj[id_t]            
-            for el in ["id_Mer", "id_Mer_nat", "id_Par", "id_proj_hor", "id_proj_hor_nat"]:
-                obj[el].set_visible(False)
-            for el in ["id_pt_Eq", "id_pt_Hor", "id_pt_Ecl"]:
-                obj[el][0].set_visible(False)
-            for el in ["id_l_eq", "id_l_ecl","id_l_ho"]:
-                obj[el].set_visible(False)
-        self.plot.annot.set_visible(False)
-
-        self.plot.toggle_ecliptic_scale(hide= True) 
-        self.plot.toggle_equator_scale(hide= True) 
-        self.plot.toggle_horizon_scale(hide= True) 
-        self.plot.toggle_prime_vert_scale(hide= True)
 
     def toggle_houses_p(self):
         isVisible=self.plot.houses_ids[1]["dot"].get_visible()
@@ -2701,7 +2711,7 @@ class GUI_astro3D:
         if abs(lat_)>90 or abs(lon_)>180:
             messagebox.showwarning("Wrong value", "Values must be within intervals:\nlatitude:\n[0, 90] for North and [0, -90] for South\nlongitude:\n[0, 180] for East and [0, -180] for West")
             return
-        self.extra_off()
+        self.plot.extra_off()
 
         tz_=None
         t_obj = get_time_now(tz_=tz_)
