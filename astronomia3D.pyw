@@ -1501,7 +1501,8 @@ class astro3D():
 
     def key_(self,event):
         if event.key=="escape":
-            exit()
+            pass
+            #exit()
 
         elif event.key=="left":
             azim_, elev_ = self.ax.azim, self.ax.elev
@@ -1535,11 +1536,9 @@ class astro3D():
         elif event.key=="ctrl+s":
             filename=r"3D_astro"
             filename=asksaveasfilename(parent=self.parent,title="Save file",initialdir="C:\\",initialfile = filename,filetypes=[('image, .png', '*.png'),('All Files', '*.*')])
+            if filename=="":return
             filename=f"{filename}.png"
-            if filename=="": # cancel
-                return
-            else:
-                self.fig.savefig(filename)
+            self.fig.savefig(filename)
 
     def onpick(self,event):
         if event.mouseevent.button in [2,"up","down"]:return
@@ -2184,15 +2183,15 @@ class astro3D():
         if format=="gif":
             filename="Astronomia3D_animation"
             filename=asksaveasfilename(parent=self.parent,title="Save file",initialdir="C:\\",initialfile = filename,filetypes=[('image, .gif', '*.gif'),('All Files', '*.*')])
+            if filename=="":return
             filename=f"{filename}.gif"
         elif format=="mp4":
             filename="Astronomia3D_animation"
             filename=asksaveasfilename(parent=self.parent,title="Save file",initialdir="C:\\",initialfile = filename,filetypes=[('video, .mp4', '*.mp4'),('All Files', '*.*')])
+            if filename=="":return
             filename=f"{filename}.mp4"; 
-        if filename=="": # cancel
-            return
-        else:
-            anim.save(filename, writer=video_)
+
+        anim.save(filename, writer=video_)
 
 #=====================
 
@@ -2275,6 +2274,7 @@ class GUI_astro3D:
         self.combo_.grid(row=0, column=1,sticky="w", padx=10, pady=(0,5))  
         self.combo_['values'] = ("Extra off", "Planet projection points", "Planet meridian", "Planet parallel", 
             "Planet prop. horizon", "All ecliptic points", "Zodiac ecliptic points","Zodiac symbols",
+            "Horizon projections off",
             "Ecliptic scale", "Equator scale", "Horizon scale", "Prime vertical scale")
         self.combo_.set("Hide/show")
         self.combo_["state"] = "readonly"
@@ -2605,6 +2605,13 @@ class GUI_astro3D:
             isVisible=self.plot.asc_id.get_visible()
             for id_ in [self.plot.armc_id, self.plot.mc_id, self.plot.asc_id, self.plot.asc_id2, self.plot.poleN_id, self.plot.poleS_id]:
                 id_.set_visible(not isVisible)
+
+        elif str_=="Horizon projections off":
+            for name in self.plot.planets_ids:
+                if name in ["Node_N", "Node_S", "Asc", "MC"]:continue
+                obj=self.plot.planets_ids[name]
+                for el in ["id_l_ho", "id_pt_Hor"]:
+                    obj[el].set_visible(False)
 
 
         elif str_=="Ecliptic scale":
