@@ -69,17 +69,17 @@ class calc_for_3D:
             pl_ecl_lat = pl_pos_obj[0][1]
             pl_speed   = pl_pos_obj[0][3]
             planets_data[pl]["ecl"]=(pl_ecl_lon,pl_ecl_lat,pl_speed)
-            pl_pos_obj_eq=swe.calc_ut(julday_, i,2048)  #right ascension, declination, distance
-            pl_RA=pl_pos_obj_eq[0][0]
-            pl_decl=pl_pos_obj_eq[0][1]
+            obj_eq=swe.calc_ut(julday_, i,2048)  #right ascension, declination, distance
+            pl_RA=obj_eq[0][0]
+            pl_decl=obj_eq[0][1]
             planets_data[pl]["eq"]=(pl_RA,pl_decl) 
             
             if pl=="Node_N":
                 planets_data["Node_S"]={}
                 pl_ecl_lon=pl_ecl_lon+180
-                if pl_ecl_lon>360:pl_ecl_lon-=360 
+                pl_ecl_lon=norm_(pl_ecl_lon)
                 pl_RA=pl_RA+180
-                if pl_RA>360:pl_RA-=360 
+                pl_RA=norm_(pl_RA)
                 planets_data["Node_S"]["ecl"]=(pl_ecl_lon,0,pl_speed)
                 planets_data["Node_S"]["eq"]=(pl_RA,-pl_decl) 
 
@@ -114,7 +114,7 @@ class calc_for_3D:
         planets_data["Dsc"]["eq"]=(Dsc_RA,Dsc_decl)
 
         IC=MC+180
-        if IC>360:IC=IC-360
+        IC=norm_(IC)
         s= swe.cotrans(IC,0,1,-ε) 
         IC_RA=s[0]; IC_decl=s[1]
         planets_data["IC"]={}
@@ -145,52 +145,56 @@ class calc_for_3D:
 
         planets_data["IC"]["OA"] =planets_data["IC"]["OA_e"]=0
         planets_data["IC"]["AD"] = planets_data["IC"]["AD_e"]=0  
-        RA_e= ARMC+180
-        if RA_e>360:RA_e=RA_e-360
+        RA_e= norm_(ARMC+180)
         planets_data["IC"]["RA_e"] = RA_e
 
-        for el in ["Asc","MC","Dsc","IC"]:
-            planets_data[el]["Q"]=0
-            planets_data[el]["QRA"]=planets_data[el]["eq"][0]
-
         for pl,obj in planets_data.items():
-            if pl in ["Asc","MC","Dsc","IC"]:continue
-            else:
-                ecl_long=planets_data[pl]["ecl"][0]
-                RA=planets_data[pl]["eq"][0]
-                decl=planets_data[pl]["eq"][1]
-                try: 
-                    AD= asin(tan(decl) * tan(latitude))
-                    OA = RA - AD
-                except:
-                    AD=0
-                    OA=0
+            #if pl in ["Asc","MC","Dsc","IC"]:continue
+            ecl_long=planets_data[pl]["ecl"][0]
+            RA=planets_data[pl]["eq"][0]
+            decl=planets_data[pl]["eq"][1]
+            try: 
+                AD= asin(tan(decl) * tan(latitude))
+                OA = RA - AD
+            except:
+                AD=0
+                OA=0
 
-                planets_data[pl]["OA"] = OA
-                planets_data[pl]["AD"] = round(AD,5)
-                RA_,decl_,d = swe.cotrans(ecl_long,0,1,-ε)
-                try: 
-                    AD= asin(tan(decl_) * tan(latitude))
-                    OA = RA - AD
-                except:
-                    AD=0
-                    OA=0
-                OA = RA_ - AD
+            planets_data[pl]["OA"] = OA
+            planets_data[pl]["AD"] = round(AD,5)
+            RA_,decl_,d = swe.cotrans(ecl_long,0,1,-ε)
+            try: 
+                AD= asin(tan(decl_) * tan(latitude))
+                OA = RA - AD
+            except:
+                AD=0
+                OA=0
+
+            if pl not in ["Asc","Dsc","MC","IC"]:
                 planets_data[pl]["OA_e"] = OA
                 planets_data[pl]["AD_e"] = round(AD,5)
                 planets_data[pl]["RA_e"] = RA_
 
-                OAA=Asc_OA
+            OAA=Asc_OA
+            try:
                 Q=self.get_Q(OAA, RA, decl, latitude)
-                hemi_=self.get_hemi_west_east(RA, ARMC)
-                if pl in ["Asc","MC","Dsc","IC"]:Q=0   
-                if hemi_=="east":
-                    QRA = RA - Q
-                if hemi_=="west":
-                    QRA = RA + Q
-                QRA=norm_(QRA)
-                planets_data[pl]["Q"]=Q
-                planets_data[pl]["QRA"]=QRA
+            except:
+                Q=0
+
+            hemi_=self.get_hemi_west_east(RA, ARMC)
+            if pl in ["Asc","MC","Dsc","IC"]:Q=0   
+            if hemi_=="east":
+                QRA = RA - Q
+            if hemi_=="west":
+                QRA = RA + Q
+            QRA=norm_(QRA)
+            planets_data[pl]["Q"]=Q
+            planets_data[pl]["QRA"]=QRA
+
+        for el in ["MC","IC"]:
+            planets_data[el]["Q"]=0
+            planets_data[el]["QRA"]=planets_data[el]["eq"][0]
+
         return planets_data
 
     def get_quadrant(self,RA,AD,planets,pl=""):
